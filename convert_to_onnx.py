@@ -80,9 +80,19 @@ if __name__ == '__main__':
     print("==> Exporting model to ONNX format at '{}'".format(output_onnx))
     input_names = ["input0"]
     output_names = ["output0"]
-    inputs = torch.randn(1, 3, args.long_side, args.long_side).to(device)
+    dummy_input = torch.randn(1, 3, args.long_side, args.long_side).to(device)
 
-    torch_out = torch.onnx._export(net, inputs, output_onnx, export_params=True, verbose=False,
-                                   input_names=input_names, output_names=output_names)
-
-
+    torch.onnx.export(
+    net,
+    dummy_input,
+    "FaceDetector.onnx",
+    export_params=True,
+    opset_version=11,               
+    do_constant_folding=True,
+    input_names=["input0"],
+    output_names=["output0"],
+    dynamic_axes={
+        "input0": {0: "batch_size"},   # El primer eje de 'input0' es dinámico
+        "output0": {0: "batch_size"}   # El primer eje de 'output0' también es dinámico
+    }
+)
